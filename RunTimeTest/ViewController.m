@@ -10,6 +10,7 @@
 #import <objc/runtime.h>
 #import "TestModel.h"
 #import "UIImage+ImageWithName.h"
+#import "Person.h"
 @interface ViewController ()
 
 @end
@@ -22,7 +23,7 @@
 //    [self test];
     //[self test1];
     //[self test2];
-    [self test4];
+    [self test6];
 }
 
 
@@ -83,5 +84,38 @@
     imageView.frame = CGRectMake(50, 100, 100, 100);
     [self.view addSubview:imageView];
     imageView.image = [UIImage imageNamed:@"moreWhite2"];
+}
+/**动态添加方法*/
+//1.动态添加方法
+-(void)test5
+{
+    Person *p = [[Person alloc]init];
+    //默认person没有实现eat方法可以通过performSelector调用，但会报错。 动态添加方法就不会报错了。
+    [p performSelector:@selector(eat)];
+}
+/**动态增加一个类*/
+-(void)test6
+{
+    //添加一个类
+    Class classStudent = objc_allocateClassPair([self class], "Student", 0);
+    //添加一个NSString的变量
+    if (class_addIvar(classStudent, "schoolName", sizeof(NSString *), 0, "@")) {
+        NSLog(@"添加成员变量schoolName成功");
+    }
+    //添加一个方法
+    if (class_addMethod(classStudent, @selector(printSchool), (IMP)(printSchool), "v@:")) {
+        NSLog(@"添加方法printSchool成功");
+    }
+    //注册这个类到runtime系统中
+    objc_registerClassPair(classStudent);
+    //创建类
+    id student = [[classStudent alloc]init];
+    NSString *schoolName = @"福建师范大学";
+    [student setValue:schoolName forKey:@"schoolName"];
+    [student performSelector:@selector(printSchool) withObject:nil];
+}
+void printSchool(id self, SEL _cmd)
+{
+    NSLog(@"学校名字是%@",[self valueForKey:@"schoolName"]);
 }
 @end
